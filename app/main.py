@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from app.routers import health
 
 app = FastAPI(
     title="SwiftTicket API",
@@ -10,6 +11,4 @@ app = FastAPI(
 def root():
     return {"message": "SwiftTicket API is running"}
 
-@app.get("/health")
-def health_check():
-    return {"status": "healthy"}
+app.include_router(health.router)
