@@ -1,5 +1,7 @@
 from fastapi import FastAPI
+import psycopg2
 from app.routers import health
+from app.database.sessions import engine
 
 app = FastAPI(
     title="SwiftTicket API",
