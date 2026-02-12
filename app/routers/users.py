@@ -1,24 +1,41 @@
 from fastapi import APIRouter,  Depends, status, HTTPException
 from app.database.sessions import Session , get_db
-from app import models,  schemas
+from app import models,  schemas, core
+from app.core.security import hash_password
 
 router = APIRouter(
     prefix='/users',
     tags=["users"]
 )
 
-@router.get("/", status_code=status.HTTP_200_OK)
+# Get User
+
+@router.get("/", status_code=status.HTTP_200_OK, response_model=list[schemas.user.UserResponse])
 def get_users(db: Session = Depends(get_db)):
     users_data = db.query(models.User).all()
-    return {'All Users': users_data}
+    return users_data
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
+# Create User
+
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.user.UserResponse)
 def create_user(data: schemas.user.UserCreate, db: Session = Depends(get_db)):
-    new_user = models.User(**data.model_dump())
+
+    hashed_password = core.security.hash_password(data.password)
+
+    user_data = data.model_dump(exclude={"password"})
+    user_data["hashed_password"] = hashed_password
+
+    new_user = models.User(**user_data)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    return {"Data": new_user, "message": "User created successfully!"}
+
+    return new_user
+
+
+
+
+# Get User by ID
 
 @router.get("/{Id}")
 def get_user_by_id(Id: int, db: Session = Depends(get_db)):
@@ -26,6 +43,10 @@ def get_user_by_id(Id: int, db: Session = Depends(get_db)):
     if not user_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     return {'User Id': user_id}
+
+
+
+# Update User by ID
 
 @router.put("/{Id}", status_code=status.HTTP_200_OK)
 def update_user_by_id(Id: int, data: schemas.user.UserUpdate, db: Session = Depends(get_db)):
@@ -48,6 +69,8 @@ def update_user_by_id(Id: int, data: schemas.user.UserUpdate, db: Session = Depe
         "data": user,
         "message": f"User {Id} has been updated."
     }
+
+# Delete User by ID
 
 @router.delete("/{Id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(Id: int, db: Session = Depends(get_db)):
