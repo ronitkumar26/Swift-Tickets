@@ -23,10 +23,21 @@ class UserResponse(UserBase):
     is_active: bool
     created_at: datetime
 
-    class Config:
+    class Config:   
         from_attributes = True   # Pydantic v2 (orm_mode equivalent)
 
 
 class UserListResponse(BaseModel):
     users: list[UserResponse]
 
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str 
+
+class TokenData(BaseModel):
+    id: int
+    role: Optional[str] = None

@@ -2,6 +2,9 @@ from fastapi import APIRouter,  Depends, status, HTTPException
 from app.database.sessions import Session , get_db
 from app import models,  schemas, core
 from app.core.security import hash_password
+from app.core import oauth2
+from app.core.oauth2 import get_current_admin
+from app.schemas.user import TokenData
 
 router = APIRouter(
     prefix='/users',
@@ -11,7 +14,7 @@ router = APIRouter(
 # Get User
 
 @router.get("/", status_code=status.HTTP_200_OK, response_model=list[schemas.user.UserResponse])
-def get_users(db: Session = Depends(get_db)):
+def get_users(db: Session = Depends(get_db), current_admin: str = Depends(oauth2.get_current_admin)):
     users_data = db.query(models.User).all()
     return users_data
 
@@ -37,19 +40,19 @@ def create_user(data: schemas.user.UserCreate, db: Session = Depends(get_db)):
 
 # Get User by ID
 
-@router.get("/{Id}")
-def get_user_by_id(Id: int, db: Session = Depends(get_db)):
+@router.get("/{Id}", status_code= status.HTTP_200_OK , response_model=schemas.user.UserResponse)
+def get_user_by_id(Id: int, db: Session = Depends(get_db), current_admin: str = Depends(oauth2.get_current_admin)):
     user_id = db.query(models.User).filter(models.User.id == Id).first()
     if not user_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    return {'User Id': user_id}
+    return user_id
 
 
 
 # Update User by ID
 
-@router.put("/{Id}", status_code=status.HTTP_200_OK)
-def update_user_by_id(Id: int, data: schemas.user.UserUpdate, db: Session = Depends(get_db)):
+@router.put("/{Id}", status_code=status.HTTP_200_OK, response_model=schemas.user.UserResponse)
+def update_user_by_id(Id: int, data: schemas.user.UserUpdate, db: Session = Depends(get_db), current_user: str = Depends(oauth2.get_current_user)):
     query = db.query(models.User).filter(models.User.id == Id)
     user = query.first()
     if not query:
@@ -65,20 +68,18 @@ def update_user_by_id(Id: int, data: schemas.user.UserUpdate, db: Session = Depe
     print(f"Password: {user.hashed_password}")
     print("---------------------------------")
 
-    return {
-        "data": user,
-        "message": f"User {Id} has been updated."
-    }
+    return user
+
 
 # Delete User by ID
 
 @router.delete("/{Id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(Id: int, db: Session = Depends(get_db)):
+def delete_user(Id: int, db: Session = Depends(get_db), current_user: str = Depends(oauth2.get_current_user)):
     query = db.query(models.User).filter(models.User.id == Id)
     user = query.first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id {Id} not found")
     query.delete(synchronize_session=False)
     db.commit()
-    return {"message": f"User {id} has been deleted successfully."}
+    return None
     
