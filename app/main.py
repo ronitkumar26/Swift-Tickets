@@ -1,8 +1,6 @@
 from fastapi import FastAPI
-import psycopg2
-from app.routers import health
+from app.routers import health, users
 from app.database.sessions import engine
-
 app = FastAPI(
     title="SwiftTicket API",
     description="Internal company support ticketing system",
@@ -14,3 +12,4 @@ def root():
     return {"message": "SwiftTicket API is running"}
 
 app.include_router(health.router)
+app.include_router(users.router)

@@ -14,6 +14,7 @@ class User(Base, TimestampMixin):
     __tablename__ = "users"
     
     id: Mapped[int] = mapped_column(primary_key=True)
+    username: Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=False)
     email: Mapped[str] = mapped_column(String, unique=True, index=True , nullable= False)
     hashed_password: Mapped[str] = mapped_column(String, unique= True, nullable= False)
     role: Mapped[UserRole] = mapped_column(SQLEnum(UserRole), nullable=False, default=UserRole.EMPLOYEE)
