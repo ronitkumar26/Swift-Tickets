@@ -6,14 +6,16 @@ from app.schemas.user import TokenData
 from app.database.sessions import get_db
 from sqlalchemy.orm import Session
 from app import models
+from app.core.config import settings
 
 # OAuth2 setup
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 
 # Secret & algorithm
-SECRET_KEY = "22f3d9333ff7e0021b7fbce3a02d7c52c13ae23e87f35f8a92542c29f24e3933"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = settings.ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
+
 
 # Create JWT token
 def create_access_token(data: dict):
