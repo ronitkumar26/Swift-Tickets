@@ -1,5 +1,5 @@
 from sqlalchemy import String, Boolean
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.base import Base
 from enum import Enum
 from sqlalchemy import Enum as SQLEnum
@@ -19,4 +19,19 @@ class User(Base, TimestampMixin):
     hashed_password: Mapped[str] = mapped_column(String, unique= True, nullable= False)
     role: Mapped[UserRole] = mapped_column(SQLEnum(UserRole), nullable=False, default=UserRole.EMPLOYEE)
     is_active: Mapped[bool] = mapped_column(Boolean, default= True)
+
+    #relationship
+
+    owned_tickets = relationship(
+    "Ticket",
+    back_populates="owner",
+    foreign_keys="Ticket.owner_id",
+)
+
+    assigned_tickets = relationship(
+    "Ticket",
+    back_populates="assigned_to",
+    foreign_keys="Ticket.assigned_to_id",
+)
+
 

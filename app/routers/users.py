@@ -130,7 +130,34 @@ def create_user(data: schemas.user.UserCreate, db: Session = Depends(get_db)):
         username=data.username,
         email=data.email,
         hashed_password=hashed_pw,
-        role="employee",  # default role
+        role=data.role.EMPLOYEE
+    )   
+
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return new_user
+
+# =========================================================
+# ADMIN ROUTE (Registration)
+# =========================================================
+
+
+@router.post("/admin-create", response_model=schemas.user.UserResponse)
+def admin_create_user(
+    data: schemas.user.UserCreate,
+    db: Session = Depends(get_db),
+    current_admin: models.User = Depends(get_current_admin)
+):
+
+    hashed_pw = hash_password(data.password)
+
+    new_user = models.User(
+        username=data.username,
+        email=data.email,
+        hashed_password=hashed_pw,
+        role=data.role
     )
 
     db.add(new_user)

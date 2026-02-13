@@ -7,6 +7,7 @@ from alembic import context
 from app.database.base import Base
 from sqlalchemy import create_engine
 from app.models.user import User  # REQUIRED
+from app import models
 
 
 load_dotenv()

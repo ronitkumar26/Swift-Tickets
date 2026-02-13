@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime
-
+from app.models.user import UserRole
 
 class UserBase(BaseModel):
     username: str
@@ -10,6 +10,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
+    role: UserRole = UserRole.EMPLOYEE
 
 class UserUpdate(BaseModel):
     username: Optional[str] = None
