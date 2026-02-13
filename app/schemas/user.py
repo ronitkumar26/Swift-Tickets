@@ -14,17 +14,17 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     username: Optional[str] = None
     email: Optional[EmailStr] = None
-    role: Optional[str] = None
     password: Optional[str] = None
-
 
 class UserResponse(UserBase):
     id: int
+    role: str
     is_active: bool
     created_at: datetime
 
-    class Config:   
-        from_attributes = True   # Pydantic v2 (orm_mode equivalent)
+    class Config:
+        from_attributes = True
+
 
 
 class UserListResponse(BaseModel):

@@ -1,8 +1,9 @@
 from fastapi import FastAPI, Depends
 from app.routers import health, users, auth
 from app.database.sessions import engine
-from app.schemas.user import TokenData
-from app.core import oauth2
+# from app.schemas.user import TokenData
+# from app.core import oauth2
+
 app = FastAPI(
     title="SwiftTicket API",
     description="Internal company support ticketing system",
@@ -13,9 +14,9 @@ app = FastAPI(
 def root():
     return {"message": "SwiftTicket API is running"}
 
-@app.get("/test-token")
-def test_token(current_user: TokenData = Depends(oauth2.get_current_user)):
-    return {"id": current_user.id, "role": current_user.role}
+# @app.get("/test-token")
+# def test_token(current_user: TokenData = Depends(oauth2.get_current_user)):
+#     return {"id": current_user.id, "role": current_user.role}
 
 
 app.include_router(health.router)

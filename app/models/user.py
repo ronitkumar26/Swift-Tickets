@@ -18,5 +18,5 @@ class User(Base, TimestampMixin):
     email: Mapped[str] = mapped_column(String, unique=True, index=True , nullable= False)
     hashed_password: Mapped[str] = mapped_column(String, unique= True, nullable= False)
     role: Mapped[UserRole] = mapped_column(SQLEnum(UserRole), nullable=False, default=UserRole.EMPLOYEE)
-    is_active: Mapped[Boolean] = mapped_column(Boolean, default= True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default= True)
 
