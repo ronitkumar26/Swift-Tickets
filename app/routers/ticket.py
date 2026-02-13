@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session, joinedload
 from app.database.sessions import get_db
 from app import models, schemas
 from app.core.oauth2 import get_current_user, get_current_admin
 from app.models.user import UserRole
-from app.models.ticket import TicketStatus
+from app.models.ticket import TicketStatus, TicketPriority
 
 router = APIRouter(
     prefix="/tickets",
@@ -21,11 +21,12 @@ def create_ticket(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
+    if current_user.role == UserRole.TECH:
+        raise HTTPException(status_code=403, detail="Tech users are not allowed to create tickets")
+
 
     # Get all tech users
-    techs = db.query(models.User).filter(
-        models.User.role == UserRole.TECH
-    ).all()
+    techs = db.query(models.User).filter(models.User.role == UserRole.TECH).all()
 
     assigned_tech_id = None
 
@@ -58,39 +59,80 @@ def create_ticket(
 
 
 # =========================================================
-# VIEW MY TICKETS (EMPLOYEE)
+# VIEW MY TICKETS (EMPLOYEE) with filters
 # =========================================================
 
 @router.get("/me", response_model=list[schemas.ticket.TicketResponse])
 def get_my_tickets(
+    status: TicketStatus | None = Query(None),
+    priority: TicketPriority | None = Query(None),
+    search: str | None = Query(None),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    return db.query(models.Ticket).options(
-        joinedload(models.Ticket.owner),
-        joinedload(models.Ticket.assigned_to)
-    ).filter(
-        models.Ticket.owner_id == current_user.id
-    ).all()
+    if current_user.role == UserRole.TECH:
+        # Tech sees only tickets assigned to them
+        query = db.query(models.Ticket).options(
+            joinedload(models.Ticket.owner),
+            joinedload(models.Ticket.assigned_to)
+        ).filter(models.Ticket.assigned_to_id == current_user.id)
+    else:
+        # Other roles see tickets they created
+        query = db.query(models.Ticket).options(
+            joinedload(models.Ticket.owner),
+            joinedload(models.Ticket.assigned_to)
+        ).filter(models.Ticket.owner_id == current_user.id)
+
+    if status:
+        query = query.filter(models.Ticket.status == status)
+
+    if priority:
+        query = query.filter(models.Ticket.priority == priority)
+
+    if search:
+        query = query.filter(
+            models.Ticket.title.ilike(f"%{search}%") |
+            models.Ticket.description.ilike(f"%{search}%")
+        )
+
+    return query.all()
+
 
 # =========================================================
-# VIEW ASSIGNED TICKETS (TECH)
+# VIEW ASSIGNED TICKETS (TECH) with filters
 # =========================================================
 
 @router.get("/assigned", response_model=list[schemas.ticket.TicketResponse])
 def get_assigned_tickets(
+    status: TicketStatus | None = Query(None),
+    priority: TicketPriority | None = Query(None),
+    search: str | None = Query(None),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
     if current_user.role != UserRole.TECH:
         raise HTTPException(status_code=403, detail="Only tech allowed")
 
-    return db.query(models.Ticket).options(
+    query = db.query(models.Ticket).options(
         joinedload(models.Ticket.owner),
         joinedload(models.Ticket.assigned_to)
     ).filter(
         models.Ticket.assigned_to_id == current_user.id
-    ).all()
+    )
+
+    if status:
+        query = query.filter(models.Ticket.status == status)
+
+    if priority:
+        query = query.filter(models.Ticket.priority == priority)
+
+    if search:
+        query = query.filter(
+            models.Ticket.title.ilike(f"%{search}%") |
+            models.Ticket.description.ilike(f"%{search}%")
+        )
+
+    return query.all()
 
 
 # =========================================================
@@ -119,6 +161,7 @@ def employee_update(
     db.refresh(ticket)
 
     return ticket
+
 
 # =========================================================
 # TECH UPDATE STATUS / RESOLUTION
@@ -150,24 +193,46 @@ def tech_update(
 
     return ticket
 
+
 # =========================================================
-# ADMIN VIEW ALL
+# ADMIN VIEW ALL with filters
 # =========================================================
 
 @router.get("/", response_model=list[schemas.ticket.TicketResponse])
 def get_all(
+    status: TicketStatus | None = Query(None),
+    priority: TicketPriority | None = Query(None),
+    assigned_to_id: int | None = Query(None),
+    search: str | None = Query(None),
     db: Session = Depends(get_db),
     current_admin: models.User = Depends(get_current_admin),
 ):
-    return db.query(models.Ticket).options(
+    query = db.query(models.Ticket).options(
         joinedload(models.Ticket.owner),
         joinedload(models.Ticket.assigned_to)
-    ).all()
+    )
+
+    if status:
+        query = query.filter(models.Ticket.status == status)
+
+    if priority:
+        query = query.filter(models.Ticket.priority == priority)
+
+    if assigned_to_id:
+        query = query.filter(models.Ticket.assigned_to_id == assigned_to_id)
+
+    if search:
+        query = query.filter(
+            models.Ticket.title.ilike(f"%{search}%") |
+            models.Ticket.description.ilike(f"%{search}%")
+        )
+
+    return query.all()
+
 
 # =========================================================
 # ADMIN ASSIGN TICKET
 # =========================================================
-
 
 @router.put("/assign/{ticket_id}", response_model=schemas.ticket.TicketResponse)
 def assign_ticket(

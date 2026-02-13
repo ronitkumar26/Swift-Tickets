@@ -1,13 +1,10 @@
-# app/main.py
-
 import logging
 import time
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
-
-# Routers
 from app.routers import health, users, auth, ticket
+
 
 # -------------------------------
 # Logging configuration
@@ -25,7 +22,6 @@ app = FastAPI(
     description="Internal company support ticketing system",
     version="1.0.0"
 )
-
 # -------------------------------
 # Middleware
 # -------------------------------

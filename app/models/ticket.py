@@ -25,25 +25,14 @@ class Ticket(Base):
     title: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
 
-    status: Mapped[TicketStatus] = mapped_column(
-        SQLEnum(TicketStatus),
-        default=TicketStatus.OPEN,
-        nullable=False
-    )
+    status: Mapped[TicketStatus] = mapped_column(SQLEnum(TicketStatus), default=TicketStatus.OPEN, nullable=False)
 
-    priority: Mapped[TicketPriority] = mapped_column(
-        SQLEnum(TicketPriority),
-        default=TicketPriority.MEDIUM,
-        nullable=False
-    )
+    priority: Mapped[TicketPriority] = mapped_column(SQLEnum(TicketPriority), default=TicketPriority.MEDIUM, nullable=False)
 
     resolution_note: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    assigned_to_id: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id"),
-        nullable=True
-    )
+    assigned_to_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
 
     #Relationships
     owner = relationship(
