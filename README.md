@@ -88,18 +88,4 @@ The server will start at `http://localhost:8000`.
 
 ---
 
-## 📖 API Exploration
 
-Explore the endpoints and test the logic directly:
-
-* **Interactive Swagger UI:** [http://localhost:8000/docs](https://www.google.com/search?q=http://localhost:8000/docs)
-* **Alternative ReDoc:** [http://localhost:8000/redoc](https://www.google.com/search?q=http://localhost:8000/redoc)
-
----
-
-
-Ab ye ek perfect file hai. Isse copy karke apne GitHub pe push kar do, recruiter ko dikhane ke liye ye best hai.
-
-**Kya aap chahte hain ki main aapke resume ke liye is project ke impact points likhoon?**
-
-```
